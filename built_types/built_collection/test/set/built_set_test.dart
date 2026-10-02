@@ -2,7 +2,7 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-import 'dart:collection' show SplayTreeSet;
+import 'dart:collection' show LinkedHashSet, SplayTreeSet;
 
 import 'package:built_collection/src/internal/test_helpers.dart';
 import 'package:built_collection/src/set.dart';
@@ -75,10 +75,22 @@ void main() {
     });
 
     test('can be converted to an UnmodifiableSetView', () {
-      final immutableSet = BuiltSet<int>().asSet();
+      final builder = SetBuilder<int>([1, 3])..withBase(SplayTreeSet<int>.new);
+      final immutableSet = builder.build().asSet();
       expect(immutableSet, const TypeMatcher<Set<int>>());
-      expect(() => immutableSet.add(1), throwsUnsupportedError);
-      expect(immutableSet, isEmpty);
+      expect(() => immutableSet.add(2), throwsUnsupportedError);
+      final cast = immutableSet.cast<num>();
+      expect(cast.clear, throwsUnsupportedError);
+      expect(cast.union({2, 4}), orderedEquals([1, 2, 3, 4]));
+      builder.add(2);
+      expect(immutableSet, orderedEquals([1, 3]));
+
+      final identitySet = BuiltSet<DateTime>.build(
+        (b) => b
+          ..withBase(LinkedHashSet<DateTime>.identity)
+          ..addAll([DateTime.utc(2026), DateTime.utc(2026)]),
+      );
+      expect(identitySet.asSet().cast<Object>().toSet().length, 2);
     });
 
     test('can be converted to SetBuilder<E>', () {

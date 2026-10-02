@@ -96,10 +96,16 @@ void main() {
     });
 
     test('can be converted to an UnmodifiableMapView', () {
-      final immutableMap = BuiltSetMultimap<int, String>().asMap();
+      final builder = SetMultimapBuilder<int, String>({
+        1: ['Hello'],
+      });
+      final immutableMap = builder.build().asMap();
       expect(immutableMap, const TypeMatcher<Map<int, Iterable<String>>>());
-      expect(() => immutableMap[1] = ['Hello'], throwsUnsupportedError);
-      expect(immutableMap, isEmpty);
+      expect(() => immutableMap[1] = ['World'], throwsUnsupportedError);
+      builder
+        ..add(1, 'World')
+        ..build();
+      expect(immutableMap[1], ['Hello']);
     });
 
     test('can be converted to SetMultimapBuilder<K, V>', () {

@@ -93,10 +93,17 @@ void main() {
     });
 
     test('can be converted to an UnmodifiableMapView', () {
-      final immutableMap = BuiltMap<int, String>().asMap();
+      final builder = MapBuilder<int, String>({1: 'Hello'})
+        ..withBase(
+          () => SplayTreeMap<int, String>((a, b) => a.abs().compareTo(b.abs())),
+        );
+      final immutableMap = builder.build().asMap();
       expect(immutableMap, const TypeMatcher<Map<int, String>>());
-      expect(() => immutableMap[1] = 'Hello', throwsUnsupportedError);
-      expect(immutableMap, isEmpty);
+      expect(() => immutableMap[1] = 'World', throwsUnsupportedError);
+      expect(immutableMap[-1], 'Hello');
+      expect(immutableMap.containsKey(-1), isTrue);
+      builder.clear();
+      expect(immutableMap, {1: 'Hello'});
     });
 
     test('can be converted to MapBuilder<K, V>', () {
